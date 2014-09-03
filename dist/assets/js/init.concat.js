@@ -1,0 +1,1 @@
+function hello(){return this.a+this.b}var a="Hello ",b="World!";alert(hello(a,b));
