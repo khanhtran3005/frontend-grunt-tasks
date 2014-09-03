@@ -1,6 +1,5 @@
 frontend-grunt-tasks
 ====================
-
 Grunt tasks that front-end developers should use to improve website's performance with no configurations and 1 command to run it right away.
 ## Requires
 
