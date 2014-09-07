@@ -1,5 +1,5 @@
 module.exports = function(grunt) {
-    'use strict';;
+    'use strict';
     /**
      * Config directory
      * @dist: distribution folder. Default: dist
@@ -140,6 +140,12 @@ module.exports = function(grunt) {
                 src: ['<%= dir.cssSrc %>/**/*.css']
             }
         },
+        replace: {
+            css: {
+                from: '(<link.*?>)',
+                to: ''
+            }
+        }
 
     });
 
