@@ -62,11 +62,6 @@ module.exports = function(grunt) {
                 files: {
                     '<%= dir.cssDist %>/style.concat.css': ['<%= dir.cssSrc %>/**/*.css']
                 }
-            },
-            dist_uncss: {
-                files: {
-                    '<%= dir.cssDist %>/style.uncss.css': '<%= dir.cssDist %>/style.uncss.css'
-                }
             }
         },
         uglify: {
@@ -101,21 +96,10 @@ module.exports = function(grunt) {
                 },
                 files: [{
                     expand: true,
-                    cwd: '<%= dir.src%>',
+                    cwd: '<%= dir.dist%>',
                     src: '**/*.html',
                     dest: '<%= dir.dist%>',
                 }]
-            }
-        },
-        uncss: {
-            dist: {
-                options: {
-                    ignore: [/js-.+/, ''], //add more class, id that you want to ignore. Ex: '.class-a'
-                    ignoreSheets: [/fonts.googleapis/],
-                },
-                files: {
-                    '<%= dir.cssDist %>/style.uncss.css': ['src/index.html', 'src/contact.html', 'src/service.html']
-                }
             }
         },
         jshint: {
@@ -140,12 +124,41 @@ module.exports = function(grunt) {
                 src: ['<%= dir.cssSrc %>/**/*.css']
             }
         },
-        replace: {
+        'sails-linker': {
+            js: {
+                options: {
+                    startTag: '<!-- SCRIPT -->',
+                    endTag: '<!-- SCRIPT END -->',
+                    fileTmpl: '<script src="%s" async></script>',
+                    appRoot: '<%= dir.dist %>'
+                },
+                files: {
+                    // Target-specific file lists and/or options go here.
+                    '<%= dir.dist %>/**/*.html': ['<%= dir.jsDist %>/**/*.js']
+                },
+            },
             css: {
-                from: '(<link.*?>)',
-                to: ''
+                options: {
+                    startTag: '<!-- STYLE -->',
+                    endTag: '<!-- STYLE END -->',
+                    fileTmpl: '<link rel="stylesheet" href="%s">',
+                    appRoot: '<%= dir.dist %>'
+                },
+                files: {
+                    // Target-specific file lists and/or options go here.
+                    '<%= dir.dist %>/**/*.html': ['<%= dir.cssDist %>/**/*.css']
+                },
             }
-        }
+        },
+        copy: {
+            main: {
+                expand: true,
+                cwd: '<%= dir.src %>/',
+                src: ['**/*.html', '**/fonts/**'], 
+                dest: '<%= dir.dist %>/', 
+                filter: 'isFile'
+            },
+        },
 
     });
 
@@ -156,12 +169,14 @@ module.exports = function(grunt) {
     grunt.option('force', true);
     // Compress images
     grunt.registerTask('min', ['cssmin:dist', 'uglify:dist', 'imagemin', 'htmlmin']);
+
     grunt.registerTask('min:concat', ['cssmin:dist_concat', 'uglify:dist_concat', 'imagemin', 'htmlmin']);
-    
+
     // grunt.registerTask('min:concat', ['uglify:dist_concat']);
     grunt.registerTask('lint', ['jshint', 'csslint']);
 
     // Build task(s).
-    grunt.registerTask('build', ['jshint', 'csslint', 'uglify:dist_concat', 'uncss', 'cssmin:dist_uncss', 'imagemin', 'htmlmin']);
-    grunt.registerTask('build:concat', ['jshint', 'csslint', 'uglify:dist_concat', 'cssmin:dist_concat', 'uncss', 'cssmin:dist_uncss', 'imagemin', 'htmlmin', ]);
+    grunt.registerTask('build', ['uglify:dist_concat', 'cssmin:dist_concat', 'copy', 'sails-linker:js', 'sails-linker:css', 'htmlmin', 'imagemin']);
+
+    grunt.registerTask('build:concat', ['uglify:dist_concat', 'cssmin:dist_concat', 'copy', 'imagemin', 'htmlmin', ]);
 };
